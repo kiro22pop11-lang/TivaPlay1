@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="ar-eg">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Language" content="ar-eg">
+    <link rel="icon" href="https://files.catbox.moe/bgo6w1.jpg" sizes="192x192" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TivaPlay</title>
+
+    <meta name="description" content="TivaPlay لمشاهدة الأفلام والمسلسلات بجودة عالية بدون إعلانات. استمتع بتجربة مشاهدة سلسة وممتعة مع مكتبة ضخمة من المحتوى المتنوع.">  
+    <meta name="keywords" content="TivaPlay, أفلام, مسلسلات, جودة عالية, بدون إعلانات, مشاهدة, محتوى متنوع">
+
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&family=Cairo:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            transition: all 0.3s ease;
+        }
+
+        /* Navigation Bar */
+        #NavigationBar {
+            background: linear-gradient(135deg, #0cb683, #0d70c2);
+            padding: 10px 25px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            height: 60px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        #NavigationBar a img {
+            width: 90px; /* تكبير اللوجو قليلاً */
+            margin-left: 15px;
+            margin-right: 15px;
+        }
+
+        #NavigationBar ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        #NavigationBar ul li {
+            margin: 0;
+        }
+
+        #NavigationBar ul li a {
+            color: #b0e914;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 18px; /* زيادة حجم النص */
+            text-transform: uppercase;
+            padding: 8px 16px; /* زيادة حجم الأزرار */
+            border-radius: 5px;
+            transition: color 0.3s ease, transform 0.3s ease, font-size 0.3s ease, background-color 0.3s ease;
+        }
+
+        #NavigationBar ul li a:hover {
+            color: #fff;
+            background-color: #1a4e7f;
+            transform: translateY(-5px);
+            font-size: 18px;
+        }
+
+        /* Header Section */
+        #Header {
+            background: linear-gradient(135deg, #26ada7, #6ec00288);
+            color: white;
+            padding: 70px 20px;
+            text-align: center;
+            border-bottom: 5px solid #ffffff;
+        }
+
+        #Header h1 {
+            font-size: 70px; /* تكبير العنوان */
+            margin-bottom: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.6);
+        }
+
+        #Header p {
+            font-size: 20px; /* زيادة حجم النص */
+            margin-bottom: 30px;
+            font-weight: 300;
+            letter-spacing: 0.5px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 15px 40px; /* زيادة حجم الأزرار */
+            background: linear-gradient(135deg, #fcbf49, #e0a800);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 18px; /* زيادة حجم النص في الزر */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            transform: scale(1.1);
+            background-color: #e0a800;
+        }
+
+        /* Section Styling */
+        .section {
+            padding: 60px 20px;
+            text-align: center;
+            background-color: #fff;
+            margin-bottom: 50px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+        }
+
+        .section h2 {
+            font-size: 40px; /* تكبير العنوان الفرعي */
+            margin-bottom: 30px;
+            color: #333;
+            font-weight: 600;
+        }
+
+        .section p {
+            font-size: 18px; /* زيادة حجم النص */
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+        /* Image resizing in AppInfo */
+        #AppInfo img {
+            max-width: 100%;
+            height: auto;
+            margin: 15px 0;
+        }
+
+        /* Download Section */
+        #DownloadSection {
+            background: linear-gradient(135deg, #0df091b6, #f03e4d);
+            padding: 80px 20px;
+            color: white;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        #DownloadSection h2 {
+            font-size: 42px; /* زيادة حجم العنوان */
+            margin-bottom: 30px;
+            font-weight: 700;
+        }
+
+        #DownloadSection ul {
+            list-style-type: none;
+            padding: 0;
+            font-size: 22px; /* زيادة حجم النص */
+            margin-bottom: 25px;
+            line-height: 2;
+        }
+
+        #DownloadSection ul li {
+            margin: 15px 0;
+            font-weight: 500;
+        }
+
+        .download-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            margin-top: 40px;
+        }
+
+        .download-btn, .web-btn {
+            display: inline-block;
+            padding: 15px 30px; /* زيادة الأزرار */
+            margin: 10px;
+            background: linear-gradient(135deg, #ff7e5f, #feb47b);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-size: 18px; /* زيادة حجم النص */
+            transition: background-color 0.3s ease, transform 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            white-space: nowrap;
+        }
+
+        .download-btn:hover, .web-btn:hover {
+            background-color: #fcbf49;
+            transform: scale(1.05);
+        }
+
+        .web-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+        }
+
+        .web-btn:hover {
+            background-color: #0056b3;
+        }
+
+        /* Footer Section - Contact via WhatsApp */
+        #Chris {
+            background-color: #464343;
+            color: white;
+            padding: 60px 20px;
+            text-align: center;
+            border-radius: 10px;
+        }
+
+        #Chris h2 {
+            font-size: 36px; /* زيادة حجم العنوان */
+            margin-bottom: 25px;
+        }
+
+        #Chris p {
+            font-size: 20px; /* زيادة حجم النص */
+            margin-bottom: 30px;
+        }
+
+        #Chris a.whatsapp-btn {
+            background: linear-gradient(135deg, #25D366, #128C7E);
+            color: white;
+            font-size: 20px; /* زيادة حجم النص في الزر */
+            padding: 15px 45px;
+            border-radius: 50px;
+            font-weight: bold;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+            margin-top: 25px;
+        }
+
+        #Chris a.whatsapp-btn:hover {
+            background-color: #128C7E;
+        }
+
+        /* Media Queries for Responsiveness */
+        @media (max-width: 768px) {
+            #Header h1 {
+                font-size: 50px;
+            }
+
+            #Header p {
+                font-size: 16px;
+            }
+
+            .btn {
+                font-size: 16px;
+                padding: 12px 30px;
+            }
+
+            #NavigationBar ul li a {
+                font-size: 14px;
+                padding: 8px 15px;
+            }
+
+            #DownloadSection h2 {
+                font-size: 32px;
+            }
+
+            .download-btn, .web-btn {
+                font-size: 16px;
+                padding: 12px 25px;
+            }
+
+            #Chris a.whatsapp-btn {
+                font-size: 18px;
+                padding: 15px 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            #Header h1 {
+                font-size: 40px;
+            }
+
+            #Header p {
+                font-size: 14px;
+            }
+
+            .btn {
+                font-size: 14px;
+                padding: 10px 25px;
+            }
+
+            #NavigationBar ul li a {
+                font-size: 12px;
+                padding: 6px 12px;
+            }
+
+            #NavigationBar a img {
+                width: 60px;
+            }
+
+            #DownloadSection h2 {
+                font-size: 28px;
+            }
+
+            .download-btn, .web-btn {
+                font-size: 14px;
+                padding: 10px 20px;
+            }
+
+            #Chris a.whatsapp-btn {
+                font-size: 16px;
+                padding: 12px 30px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. Start of NavigationBar -->
+    <div id="NavigationBar"> 
+        <a href="#">
+            <img src="https://files.catbox.moe/mvvhd3.jpg" alt="TivaPlay Logo">
+        </a>
+        <ul> 
+            <li><a href="#">الرئيسية</a></li>
+            <li><a href="#AppInfo">صور من التطبيق</a></li>
+            <li><a href="#DownloadSection">تحميل البرنامج</a></li>
+            <li><a href="#Chris">من نحن</a></li>
+        </ul>
+    </div>
+    <!-- 1. End of NavigationBar -->
+
+    <!-- 2. Start of Header -->
+    <div id="Header">
+        <h1>مرحبا بك في TivaPlay</h1>
+        <p>استمتع بمشاهدة الأفلام والمسلسلات بجودة عالية وبدون إعلانات. أفضل تجربة مشاهدة بكل سهولة.</p>
+        <p>قم بتحميل التطبيق الآن وابدأ رحلتك في عالم الترفيه</p>  
+        <a href="#DownloadSection" class="btn" id="downloadBtn">تحميل البرنامج</a>
+    </div>
+    <!-- 2. End of Header -->
+
+    <!-- 3. Start of "صور من داخل التطبيق" Section -->
+    <div id="AppInfo" class="section">
+        <h2>صور من داخل التطبيق</h2>
+        <img src="https://files.catbox.moe/78pgcz.png" alt="">
+        <img src="https://files.catbox.moe/7h3262.png" alt="">
+        <img src="https://files.catbox.moe/84scju.png" alt="">
+        <img src="https://files.catbox.moe/o2two7.png" alt="">
+    </div>
+    <!-- 3. End of "صور من داخل التطبيق" Section -->
+
+    <!-- 5. Start of "Download App" Section -->
+    <div id="DownloadSection">
+        <h2>قم بتحميل تطبيق <br> الآن TivaPlay</h2>
+        <p>استمتع بأفضل تجربة مشاهدة للأفلام والمسلسلات مع تطبيق TivaPlay، الذي يقدم لك:</p>
+        <ul>
+            <li><strong>جودة عالية</strong> لأفضل تجربة مشاهدة.</li>
+            <li><strong>تصفح سهل</strong> للأفلام والمسلسلات المفضلة لديك.</li>
+            <li><strong>بدون إعلانات</strong> للاستمتاع بتجربة خالية من الإزعاج.</li>
+            <li><strong>مكتبة ضخمة</strong> من المحتوى المتنوع لتلبية جميع الأذواق.</li>
+        </ul>
+
+        <div class="download-buttons">
+            <a href="https://www.mediafire.com/file/1252o05xjesnm2f/app3519193-v27uw5.apk/file" target="_blank" class="download-btn">تحميل التطبيق الآن</a>
+            <a href="tivaplay.html" target="_blank" class="download-btn web-btn">المشاهدة عبر صفحة ويب</a>
+        </div>
+
+        <div class="download-info">
+            <h3>لماذا تختار TivaPlay؟</h3>
+            <p>تطبيق TivaPlay يوفر لك أفضل تجربة مشاهدة أفلام ومسلسلات، مع إمكانية التحميل والتصفح السهل. قم بتحميل التطبيق الآن واستمتع بكل مميزاته!</p>
+        </div>
+    </div>
+    <!-- 5. End of "Download App" Section -->
+
+    <!-- 6. Start of " من نحن" Section -->
+    <div id="Chris">
+        <h2>من نحن</h2>
+        <p>تطبيق TivaPlay هو وجهتك المثالية للاستمتاع بمكتبة ضخمة من الأفلام والمسلسلات، مع واجهة استخدام سهلة وتجربة مشاهدة سلسة بدون إعلانات.</p>
+        <p>نحن نقدم لك أحدث الأفلام والمسلسلات بجودة عالية وسرعة تحميل ممتازة. فريقنا ملتزم بتقديم أفضل تجربة ترفيهية للمستخدمين.</p>
+        <h2>اقترح أفلام أو مسلسلات جديدة ترغب في مشاهدتها، أو إذا كان لديك أي ملاحظات حول التطبيق، نحن نرحب بكل اقتراحاتك.</h2>
+        <p>يمكنك التواصل معنا عبر الواتساب من خلال الضغط على "تواصل معنا" أدناه:</p>
+        <a href="https://wa.me/+201287523075?text=مرحبًا%2C%20أريد%20التواصل%20بشأن%20تطبيق%20TivaPlay" class="whatsapp-btn" target="_blank">تواصل معنا عبر واتساب</a>
+    </div>
+    <!-- 6. End of " من نحن" Section -->
+
+</body>
+</html>

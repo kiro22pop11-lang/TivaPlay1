@@ -1,0 +1,1962 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>TivaPlay</title>
+<link rel="icon" href="https://files.catbox.moe/bgo6w1.jpg" sizes="192x192" />
+  <link rel="icon" href="https://files.catbox.moe/bgo6w1.jpg" sizes="192x192" />
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+
+  <style>
+    /* Basic body styling */
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden; /* Prevent horizontal scroll */
+    }
+
+    /* Header with logo and cheer button */
+    .logo-header {
+      background-color: #1f1f1f;
+      padding: 15px 20px;
+      position: relative;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap; /* Allow wrapping on smaller screens */
+      border-bottom: 2px solid #333; /* Subtle separator */
+    }
+
+    .logo-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 30px;
+      font-weight: bold;
+      color: #e91e63; /* Accent color for logo */
+    }
+
+    .cheer-button {
+      padding: 8px 15px; /* حشوة أكبر قليلاً للزر */
+      background-color: #cc0f0f;
+      color: white;
+      border: none;
+      border-radius: 8px; /* نصف قطر حدود أكبر */
+      font-size: 15px; /* حجم خط أكبر قليلاً */
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .cheer-button:hover {
+      background-color: #882c10a9;
+      transform: translateY(-2px);
+    }
+
+    /* Top navigation buttons container */
+    .top-buttons-container {
+      margin-top: 10px;
+      padding: 0 10px;
+      display: flex;
+      flex-direction: column; /* جعل الحاويات الداخلية في عمود */
+      align-items: center; /* توسيط الحاويات الداخلية */
+      gap: 10px; /* المسافة بين الصفوف */
+    }
+
+    /* Individual rows for top navigation buttons */
+    .top-buttons-row {
+      display: flex;
+      justify-content: center; /* توسيط الأزرار داخل الصف */
+      flex-wrap: wrap; /* السماح بتجاوز الأزرار إلى سطر جديد إذا لم يكن هناك مساحة */
+      gap: 10px; /* المسافة بين الأزرار في نفس الصف */
+      width: 100%; /* تأكد أن الصف يأخذ العرض الكامل */
+      max-width: 900px; /* حد أقصى للعرض للصفوف */
+    }
+
+    .top-buttons-row button {
+      padding: 10px 10px; /* زيادة في الحشوة */
+      border: none;
+      border-radius: 8px;
+      background-color: #e91e63;
+      color: white;
+      font-size: 20px; 
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.3s;
+      flex-grow: 1; /* السماح للأزرار بالتمدد لملء المساحة المتاحة */
+      min-width: 130px; /* الحد الأدنى لعرض الزر */
+      max-width: 200px; /* الحد الأقصى لعرض الزر */
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .top-buttons-row button:hover {
+      background-color: #ff036865;
+      transform: translateY(-10px);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.4);
+    }
+    .top-buttons-row button.active {
+      background-color: #ff036865; /* Highlight active button */
+      transform: translateY(-8px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+
+    /* Search and refresh controls */
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 15px;
+      gap: 15px;
+      background-color: #1f1f1f;
+      flex-wrap: wrap;
+      border-top: 2px solid #333;
+      border-bottom: 2px solid #020202;
+      margin-top: 15px;
+    }
+
+    .controls input {
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid #ff00d4; /* Subtle border */
+      width: 60%; /* Responsive width */
+      max-width: 450px; /* Max width for larger screens */
+      font-size: 16px;
+      background-color: #ece6e6;
+      color: rgb(41, 40, 40);
+      transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    }
+    .controls input:focus {
+        border-color: #e91e63;
+        box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.5); /* Glowing effect on focus */
+        outline: none;
+    }
+
+    .controls button {
+      padding: 12px 25px;
+      border-radius: 8px;
+      background-color: #e91e63;
+      color: white;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    .controls button:hover {
+      background-color: #c2185b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+
+    /* New style for the clear watch progress button */
+    #clearWatchProgressBtn {
+        background-color: #ff9800; /* Orange color */
+    }
+    #clearWatchProgressBtn:hover {
+        background-color: #fb8c00; /* Darker orange on hover */
+    }
+
+    /* Grid layout for movies and favorites */
+    .movies { /* Only for main content container */
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid, slightly larger cards */
+      gap: 20px; /* Increased gap */
+      padding: 25px; /* Increased padding */
+    }
+
+    /* Grid layout for episodes within series popup */
+    .episodes-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); /* Responsive grid for episodes */
+      gap: 18px;
+      padding: 20px;
+      max-height: 550px; /* Limit height for scrollability */
+      overflow-y: auto; /* Enable scrolling for many episodes */
+    }
+    /* Scrollbar styling for episodes grid */
+    .episodes-grid::-webkit-scrollbar {
+      width: 8px;
+    }
+    .episodes-grid::-webkit-scrollbar-track {
+      background: #333;
+      border-radius: 10px;
+    }
+    .episodes-grid::-webkit-scrollbar-thumb {
+      background: #e91e63;
+      border-radius: 10px;
+    }
+    .episodes-grid::-webkit-scrollbar-thumb:hover {
+      background: #c2185b;
+    }
+
+
+    /* Styling for individual movie/episode cards */
+    .movie, .episode {
+      background-color: #1e1e1e;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 6px 18px rgba(44, 43, 43, 0.322); /* More prominent shadow */
+      transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative; /* For overlay positioning */
+    }
+
+    .movie:hover, .episode:hover {
+      transform: scale(1.04); /* Slightly less aggressive scale */
+      box-shadow: 0 0 25px #e91e63; /* Brighter glow on hover */
+      background-color: #2a2a2a; /* Darken slightly on hover */
+    }
+
+    .movie img, .episode img {
+      width: 100%;
+      height: 250px; /* Fixed height for images, slightly taller */
+      object-fit: cover;
+      display: block;
+      border-bottom: 1px solid #333; /* Subtle separator */
+    }
+
+    .movie p, .episode p {
+      margin: 0;
+      padding: 12px;
+      text-align: center;
+      font-weight: bold;
+      flex-grow: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ccc; /* Slightly lighter text color */
+      font-size: 1.1em;
+    }
+
+    /* Favorite button styling */
+    .fav-button {
+      display: block;
+      width: 90%;
+      margin: 8px auto 12px; /* Increased margin */
+      padding: 8px 15px;
+      border: none;
+      border-radius: 8鸣;
+      font-size: 15px;
+      cursor: pointer;
+      color: white;
+      transition: background-color 0.3s ease, transform 0.2s;
+    }
+    .fav-button:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    /* Toast notification styling */
+    .toast {
+      position: fixed;
+      bottom: 30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #e91e63;
+      color: white;
+      padding: 15px 25px; /* Increased padding */
+      border-radius: 10px; /* More rounded */
+      display: none;
+      z-index: 99999;
+      opacity: 0;
+      transition: opacity 0.4s ease-in-out, transform 0.4s ease;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.4);
+    }
+    .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(-10px); /* Slight lift */
+    }
+
+    /* Loading Spinner */
+    .loading-spinner {
+      border: 4px solid rgba(255, 255, 255, 0.3);
+      border-top: 4px solid #e91e63;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 30px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Video Player Popup */
+    #videoPopup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9); /* Darker overlay */
+      backdrop-filter: blur(8px); /* More blur */
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+    }
+
+    .video-popup-content {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #1e1e1e;
+      padding: 30px; /* Adjusted padding */
+      border-radius: 20px; /* More rounded */
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8); /* Stronger shadow */
+      position: relative;
+      max-width: 950px; /* Slightly larger max width */
+      width: 95%; /* Wider on smaller screens */
+      border: 1px solid #333; /* Subtle border */
+
+      /* Ensure content scales vertically in fullscreen */
+      height: fit-content; /* Adjust based on content */
+      max-height: 95vh; /* Limit initial height */
+    }
+
+    /* Removed explicit fullscreen styles for popup content and controls
+       because now only the video element itself will go fullscreen.
+       The video element's browser default fullscreen styling will apply.
+    */
+
+    #videoPlayer {
+      width: 100%;
+      height: auto; /* Allow auto height based on aspect ratio */
+      border-radius: 12px;
+      background: black;
+      margin-bottom: 15px; /* Space below video */
+      box-shadow: 0 4px 15px rgba(0,0,0,0.5); /* Shadow for player */
+      flex-grow: 1; /* Allow video player to grow */
+      max-height: 80vh; /* Limit initial height to prevent overflow on small screens */
+    }
+
+    /* Specific styles for video in fullscreen mode (when #videoPlayer is fullscreen) */
+    #videoPlayer:-webkit-full-screen {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* Maintain aspect ratio */
+        border-radius: 0;
+    }
+    #videoPlayer:-moz-full-screen {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 0;
+    }
+    #videoPlayer:-ms-fullscreen {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 0;
+    }
+    #videoPlayer:fullscreen {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 0;
+    }
+
+
+    /* Style for the video title */
+    #videoTitle {
+      text-align: center;
+      color: #e91e63; /* Accent color for the title */
+      margin-top: 0;
+      margin-bottom: 20px; /* More space below title */
+      font-size: 28px; /* Larger title */
+      padding-bottom: 12px;
+      border-bottom: 2px solid #555; /* More prominent separator */
+      width: 100%;
+      box-sizing: border-box;
+    }
+
+    .close-btn {
+      position: absolute;
+      background: #ff1744;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      font-size: 22px; /* Larger icon */
+      width: 45px; /* Larger button */
+      height: 45px; /* Larger button */
+      cursor: pointer;
+      transition: transform 0.2s, background 0.3s, box-shadow 0.3s;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+      z-index: 10001; /* Ensure it's above other elements */
+    }
+    .close-btn:hover {
+      transform: scale(1.15) rotate(5deg); /* More dynamic hover */
+      background: #d50000;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+    }
+
+    /* Specific positioning for video popup close button */
+    #videoPopup .close-btn {
+        top: 5px; /* Position inside the popup */
+        right: 5px; /* Position inside the popup */
+    }
+
+    /* New controls group for time, quality, and action buttons */
+    .player-controls-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 15px;
+      padding: 0 10px;
+      flex-wrap: wrap; /* Allow wrapping */
+      gap: 10px; /* Space between elements */
+    }
+
+    #timeDisplay {
+        font-size: 1.1em;
+        color: #ddd;
+        min-width: 120px; /* Ensure space for time */
+        text-align: left;
+    }
+
+    #qualitySelector {
+        padding: 8px 10px;
+        border-radius: 6px;
+        background-color: #333;
+        color: white;
+        border: 1px solid #555;
+        font-size: 0.95em;
+        cursor: pointer;
+        transition: border-color 0.3s ease, background-color 0.3s ease;
+    }
+    #qualitySelector:hover {
+        border-color: #e91e63;
+        background-color: #444;
+    }
+
+    .action-buttons-bottom {
+      display: flex;
+      justify-content: center; /* Center these buttons */
+      align-items: center;
+      gap: 15px; /* More space between buttons */
+      width: 100%;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons-bottom button, .download-btn {
+      padding: 12px 25px; /* More padding */
+      border: none;
+      border-radius: 8px; /* More rounded */
+      background-color: #e91e63;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      text-decoration: none; /* For download button */
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px; /* For icon+text */
+    }
+    .action-buttons-bottom button:hover, .download-btn:hover {
+      background-color: #c2185b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+
+    .download-btn {
+      background: linear-gradient(45deg, #4caf50, #2e7d32); /* Green gradient */
+    }
+    .download-btn:hover {
+      background: linear-gradient(45deg, #66bb6a, #388e3c);
+    }
+
+    /* Specific styles for next/previous episode buttons */
+    #prevEpisodeBtn, #nextEpisodeBtn {
+        background-color: #03a9f4; /* Blue color for navigation */
+    }
+    #prevEpisodeBtn:hover, #nextEpisodeBtn:hover {
+        background-color: #0288d1;
+    }
+
+
+    /* Series Episodes Popup */
+    #seriesPopup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(14, 13, 13, 0.616); /* Darker overlay */
+      backdrop-filter: blur(10px); /* More blur */
+      z-index: 9999;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #seriesPopup > div { /* Inner content box of series popup */
+      position: relative; /* Essential for absolute positioning of close button */
+      background: rgb(42, 43, 42); /* Slightly less transparent */
+      padding: 30px; /* More padding */
+      border-radius: 20px; /* More rounded */
+      width: 90%;
+      max-width: 850px; /* Slightly larger max width */
+      max-height: 90%; /* Taller popup */
+      overflow-y: auto;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.747); /* Stronger shadow */
+      border: 1px solid #444;
+    }
+
+    #seriesPopup h2 {
+      text-align: center;
+      color: #e91e63;
+      margin-top: 0;
+      margin-bottom: 25px; /* More space */
+      font-size: 28px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #555;
+    }
+
+    /* Specific positioning for series popup close button */
+    #seriesPopup .close-btn {
+        top: 15px; /* Position inside the popup content area */
+        right: 15px; /* Position inside the popup content area */
+    }
+
+
+    /* Favorites Popup (Updated Styling) */
+    #favoritesPopup {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.9);
+      backdrop-filter: blur(8px);
+      z-index: 10000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    #favoritesPopup .favorites-content {
+      background: #1e1e1e;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.8);
+      position: relative;
+      max-width: 950px;
+      width: 95%;
+      max-height: 90%;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid #333;
+    }
+    /* Scrollbar styling for favorites content */
+    #favoritesPopup .favorites-content::-webkit-scrollbar {
+      width: 8px;
+    }
+    #favoritesPopup .favorites-content::-webkit-scrollbar-track {
+      background: #333;
+      border-radius: 10px;
+    }
+    #favoritesPopup .favorites-content::-webkit-scrollbar-thumb {
+      background: #e91e63;
+      border-radius: 10px;
+    }
+    #favoritesPopup .favorites-content::-webkit-scrollbar-thumb:hover {
+      background: #c2185b;
+    }
+
+    #favoritesPopup .favorites-header {
+      padding: 20px;
+      background:#1f1f1f;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      flex-wrap: wrap;
+      gap: 15px;
+      border-radius: 18px 18px 0 0; /* Rounded top corners */
+      margin: -30px -30px 25px -30px; /* Adjust margin to align with parent padding */
+      padding-top: 25px; /* Ensure padding inside header */
+      padding-bottom: 25px;
+      border-bottom: 2px solid #555;
+    }
+
+    #favoritesPopup .favorites-header h2 {
+      margin: 0;
+      color: #e91e63; /* Accent color */
+      font-size: 28px;
+    }
+
+    #favoritesPopup .favorites-header button {
+      background:#e91e63;
+      color:white;
+      border:none;
+      padding:10px 18px;
+      border-radius:8px;
+      font-size:15px;
+      cursor:pointer;
+      transition: background-color 0.3s ease, transform 0.2s, box-shadow 0.3s;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    }
+    #favoritesPopup .favorites-header button:hover {
+      background-color: #c2185b;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+    }
+    #favoritesPopup .favorites-header button:last-child {
+      background: #ff1744; /* Red for close/back button */
+    }
+    #favoritesPopup .favorites-header button:last-child:hover {
+      background: #d50000;
+    }
+
+    /* Favorites Container - Back to stacking sections vertically */
+    #favoritesContainer {
+        padding: 20px 0; /* Add some padding around sections */
+        display: block; /* Ensures sections stack vertically */
+    }
+
+    /* Specific styles for favorites sub-sections (the content within each category) */
+    .favorites-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); /* Items within section grid, slightly smaller min-width */
+        gap: 18px; /* Slightly less gap than main grid */
+        padding: 15px; /* Slightly less padding */
+        background-color: #2a2a2a; /* Slightly lighter background for each section */
+        border-radius: 15px; /* More rounded */
+        box-shadow: 0 5px 15px rgba(0,0,0,0.4);
+        margin-bottom: 25px; /* Space between sections when stacked */
+    }
+    .favorites-section:last-of-type {
+        margin-bottom: 0; /* No margin for the last section */
+    }
+    .favorites-section h3 {
+        grid-column: 1 / -1; /* Make heading span all columns within its section grid */
+        text-align: right; /* Align text to the right for Arabic */
+        color: #e91e63;
+        margin-top: 0;
+        margin-bottom: 20px; /* More space below heading */
+        padding-bottom: 8px;
+        border-bottom: 2px solid #e91e63;
+        font-size: 1.6em; /* Larger heading */
+    }
+
+    /* New Styles for Watch Progress */
+    .movie.watched {
+        border: 2px solid #4CAF50; /* Green border for watched movies */
+        box-shadow: 0 0 20px rgba(76, 175, 80, 0.6); /* Green glow */
+    }
+
+    .movie-watched-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 250px; /* Match image height */
+        background-color: rgba(0, 0, 0, 0.6); /* Darker overlay */
+        display: flex;
+        flex-direction: column; /* To stack text and checkmark */
+        justify-content: center;
+        align-items: center;
+        font-size: 40px; /* Smaller font for text + checkmark */
+        color: #4CAF50; /* Green color */
+        font-weight: bold;
+        pointer-events: none; /* Allow clicks to pass through */
+        opacity: 0; /* Hidden by default */
+        transition: opacity 0.3s ease-in-out;
+    }
+    .movie-watched-overlay span {
+        font-size: 0.6em; /* Smaller for "تمت المشاهدة" */
+        margin-top: 5px;
+    }
+    .movie.watched .movie-watched-overlay {
+        opacity: 1; /* Show when watched */
+    }
+
+    .progress-bar-container {
+        width: 90%;
+        height: 8px; /* Thinner bar */
+        background-color: #555;
+        border-radius: 4px;
+        margin: 5px auto 0; /* Position below title, above buttons */
+        overflow: hidden;
+        position: relative;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background-color: #e91e63; /* Accent color for progress */
+        width: 0%; /* Will be set by JS */
+        border-radius: 4px;
+        transition: width 0.3s ease-out;
+    }
+
+
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .logo-header {
+        flex-direction: column;
+        gap: 15px;
+        padding: 12px 15px;
+      }
+      .logo-title {
+        font-size: 24px;
+      }
+      .cheer-button {
+        padding: 7px 12px;
+        font-size: 14px;
+      }
+
+      .top-buttons-row {
+        flex-direction: row; 
+        justify-content: center; 
+        gap: 8px; 
+        padding: 0 5px; 
+      }
+      .top-buttons-row button {
+        font-size: 14px;
+        padding: 8px 12px;
+        flex-basis: calc(50% - 10px); 
+        min-width: unset; 
+      }
+      .controls {
+        flex-direction: column;
+        gap: 10px;
+        padding: 12px;
+      }
+      .controls input {
+        width: 90%;
+        padding: 10px;
+      }
+      .controls button {
+        padding: 10px 20px;
+      }
+      .movies, .episodes-grid {
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); /* Smaller cards on mobile */
+        gap: 15px;
+        padding: 15px;
+      }
+      .movie img, .episode img {
+        height: 180px;
+      }
+      .movie p, .episode p {
+        font-size: 1em;
+      }
+      .movie-watched-overlay { /* Adjust overlay height for smaller images */
+        height: 180px; 
+        font-size: 35px; /* Smaller font for mobile */
+      }
+      .movie-watched-overlay span {
+        font-size: 0.6em;
+      }
+      
+      #videoPopup .video-popup-content,
+      #seriesPopup > div,
+      #favoritesPopup .favorites-content {
+        padding: 20px;
+        border-radius: 15px;
+        max-width: 95%;
+        width: 95%;
+      }
+
+      #videoTitle, #seriesPopup h2, #favoritesPopup .favorites-header h2 {
+        font-size: 22px;
+        margin-bottom: 15px;
+        padding-bottom: 8px;
+      }
+
+      .close-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 18px;
+      }
+      #videoPopup .close-btn { /* Smaller margin for video close btn on mobile */
+          top: 5px;
+          right: 5px;
+      }
+      #seriesPopup .close-btn { /* Smaller margin for series close btn on mobile */
+          top: 5px;
+          right: 5px;
+      }
+
+      .player-controls-top {
+          flex-direction: column;
+          align-items: center;
+          gap: 10px;
+          margin-bottom: 10px;
+      }
+      #timeDisplay {
+          font-size: 1em;
+          text-align: center;
+      }
+      #qualitySelector {
+          width: 80%; /* Make it wider on small screens */
+          max-width: 250px;
+      }
+
+      .action-buttons-bottom {
+        flex-direction: column;
+        gap: 10px;
+      }
+      .action-buttons-bottom button, .download-btn {
+        width: 90%; /* Make buttons full width on small screens */
+        padding: 10px 20px;
+        font-size: 15px;
+      }
+
+      #favoritesPopup .favorites-header {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 15px;
+        gap: 10px;
+        margin: -20px -20px 20px -20px;
+      }
+      #favoritesPopup .favorites-header button {
+        padding: 8px 14px;
+        font-size: 14px;
+      }
+
+      .favorites-section {
+        grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+        gap: 10px;
+        padding: 10px;
+        margin-bottom: 15px;
+      }
+      .favorites-section h3 {
+        font-size: 1.4em;
+        margin-bottom: 15px;
+      }
+    }
+
+    /* Media query for very small phones, e.g., max-width 400px */
+    @media (max-width: 400px) {
+        .top-buttons-row button {
+            flex-basis: calc(50% - 10px); /* Stack buttons vertically on very small screens */
+            font-size: 13px;
+            padding: 7px 10px;
+        }
+        .movies, .episodes-grid, .favorites-section {
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+        }
+        .movie img, .episode img {
+            height: 160px;
+        }
+        .movie-watched-overlay { /* Adjust overlay height for very smaller images */
+          height: 160px; 
+          font-size: 30px; /* Even smaller font for tiny screens */
+      }
+      .movie-watched-overlay span {
+        font-size: 0.6em;
+      }
+      .controls button { /* Adjust button width in controls for very small screens */
+            min-width: unset;
+            width: 100%;
+        }
+    }
+  </style>
+</head>
+<body>
+  <div class="logo-header">
+    <div class="logo-title">
+      <span>🎬</span>
+      <span>TivaPlay</span>
+    </div>
+    <button class="cheer-button" onclick="cheerEgypt()">🇪🇬 تشجيع منتخب مصر</button>
+  </div>
+
+  <div class="top-buttons-container" id="navButtons">
+    <div class="top-buttons-row">
+      <button onclick="loadContent('all', this)">🏠 كل المحتوي</button>
+      <button onclick="loadContent('arabicMovies', this)">🎥 أفلام عربي</button>
+      <button onclick="loadContent('foreignMovies', this)">🌍 أفلام أجنبي</button>
+      <button onclick="loadContent('cartoonMovies', this)">🎬 أفلام كرتون</button>
+    </div>
+    <div class="top-buttons-row">
+      <button onclick="loadContent('arabicSeries', this)">📺 مسلسلات عربي</button>
+      <button onclick="loadContent('foreignSeries', this)">🌍 مسلسلات أجنبي</button>
+      <button onclick="loadContent('channels', this)">📱 بث قنوات</button>
+      <button onclick="showFavorites(this)">❤️ المفضلة</button>
+    </div>
+  </div>
+
+  <div class="controls">
+    <input type="text" id="search" placeholder="🔍 ابحث عن فيلم أو مسلسل..." oninput="filterContent()" />
+    <button onclick="loadContent(currentContentType, this, true)">🔄 تحديث</button>
+    <button id="clearWatchProgressBtn" onclick="clearWatchProgress()">🗑️ مسح سجل المشاهدة</button> </div>
+  
+  <div id="contentContainer" class="movies"></div>
+
+  <div id="videoPopup">
+    <div class="video-popup-content">
+      <button onclick="closeVideo()" class="close-btn">✖</button>
+      <h2 id="videoTitle"></h2>
+      
+      <div class="player-controls-top">
+        <div id="timeDisplay">00:00 / 00:00</div>
+        <select id="qualitySelector" style="display:none;"></select>
+      </div>
+
+      <video id="videoPlayer" controls autoplay></video>
+      
+      <div class="action-buttons-bottom">
+        <button id="prevEpisodeBtn" style="display:none;">⏪ الحلقة السابقة</button>
+        <a id="downloadBtn" href="#" download class="download-btn">⬇ تحميل الفيديو</a>
+        <button id="fullScreenBtn" onclick="toggleFullScreen()">📺 ملء الشاشة</button>
+        <button id="nextEpisodeBtn" style="display:none;">⏩ الحلقة التالية</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="seriesPopup">
+    <div>
+      <button onclick="closeSeriesPopup()" class="close-btn">✖</button>
+      <h2>📺 الحلقات</h2>
+      <div id="episodesContainer" class="episodes-grid"></div>
+    </div>
+  </div>
+
+  <div id="favoritesPopup">
+    <div class="favorites-content">
+      <div class="favorites-header">
+        <h2>❤️ المفضلة</h2>
+        <div>
+          <button onclick="clearFavorites()">🗑️ حذف الكل</button>
+          <button onclick="closeFavorites()">⬅ رجوع</button>
+        </div>
+      </div>
+      <div id="favoritesContainer"></div> 
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    // Firebase configuration (replace with your actual config)
+    const firebaseConfig = {
+      apiKey: "AIzaSyCitRCRUZEf3xFqVPckYAJibHXH5Eb-H_4",
+      authDomain: "funtime-f0cf2.firebaseapp.com",
+      databaseURL: "https://funtime-f0cf2-default-rtdb.firebaseio.com",
+      projectId: "funtime-f0cf2",
+      storageBucket: "funtime-f0cf2.appspot.com",
+      messagingSenderId: "43918892972",
+      appId: "1:43918892972:web:5a5c6b5c703b576d66e409"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Changed initial value to null to ensure first load works
+    let currentContentType = null; 
+    let allLoadedContent = null; 
+    let currentHls = null; // To keep track of the HLS instance
+
+    // Global variables for series episode navigation
+    let currentSeriesData = null;
+    let currentEpisodeIndex = -1; // Index in the sortedEpisodes array
+
+    /**
+     * Highlights the active navigation button.
+     * @param {HTMLElement} activeBtn - The button to highlight.
+     */
+    function setActiveButton(activeBtn) {
+      // Remove 'active' from all buttons within .top-buttons-row
+      const buttons = document.querySelectorAll('.top-buttons-row button');
+      buttons.forEach(btn => btn.classList.remove('active'));
+      if (activeBtn) {
+        activeBtn.classList.add('active');
+      }
+    }
+
+    /**
+     * Displays a toast notification with a given message.
+     * @param {string} message - The message to display.
+     */
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.innerText = message;
+      toast.classList.add("show");
+      setTimeout(() => {
+        toast.classList.remove("show");
+      }, 3000);
+    }
+
+    /**
+     * Plays a cheer video for the Egyptian national team.
+     */
+    function cheerEgypt() {
+      openInPlayer("https://pixeldrain.com/api/file/mtejGbBa", "تشجيع منتخب مصر");
+    }
+
+    /**
+     * Loads and displays content based on the specified type.
+     * @param {string} type - The type of content to load.
+     * @param {HTMLElement} btn - The button element that was clicked.
+     * @param {boolean} forceRefresh - If true, reloads content even if it's the same type.
+     */
+    async function loadContent(type, btn, forceRefresh = false) {
+      // Check to prevent reloading if content type is the same and it's not a forced refresh
+      // ADDITION: If it's a forced refresh, we bypass this check to ensure data is re-fetched.
+      if (currentContentType === type && !forceRefresh && allLoadedContent) { // Check if allLoadedContent exists to prevent initial empty display
+        setActiveButton(btn);
+        return;
+      }
+      
+      currentContentType = type;
+      setActiveButton(btn);
+
+      const container = document.getElementById("contentContainer");
+      container.innerHTML = "<div class='loading-spinner'></div><p style='text-align:center;'>⏳ جاري التحميل...</p>";
+      document.getElementById("search").value = "";
+      
+      let contentPaths;
+      switch (type) {
+        case 'all':
+          // Excludes "channels" as requested
+          contentPaths = ["movies/movies", "movies/moviesEN", "movies/cartoon", "series/arabe", "series/foreign"];
+          break;
+        case 'arabicMovies':
+          contentPaths = ["movies/movies"];
+          break;
+        case 'foreignMovies':
+          contentPaths = ["movies/moviesEN"];
+          break;
+        case 'cartoonMovies':
+          contentPaths = ["movies/cartoon"];
+          break;
+        case 'arabicSeries':
+          contentPaths = ["series/arabe"];
+          break;
+        case 'foreignSeries':
+          contentPaths = ["series/foreign"];
+          break;
+        case 'channels':
+          contentPaths = ["channels"];
+          break;
+        default:
+          container.innerHTML = "<p style='text-align:center;'>لا يوجد محتوى لهذا القسم.</p>";
+          return;
+      }
+
+      try {
+        const snapshots = await Promise.all(contentPaths.map(path => db.ref(path).once("value")));
+        let contentArray = [];
+        snapshots.forEach((snapshot, index) => {
+            const data = snapshot.val();
+            if (data) {
+                Object.keys(data).forEach(key => {
+                    const item = data[key];
+                    if (item && item.title && item.image) {
+                        let itemType;
+                        let originalCategory = '';
+                        // Determine itemType and originalCategory based on path
+                        const currentPath = contentPaths[index];
+                        if (currentPath.startsWith("movies")) {
+                            itemType = 'movie';
+                            if (currentPath === "movies/movies") originalCategory = "arabicMovies";
+                            else if (currentPath === "movies/moviesEN") originalCategory = "foreignMovies";
+                            else if (currentPath === "movies/cartoon") originalCategory = "cartoonMovies";
+                        } else if (currentPath.startsWith("series")) {
+                            itemType = 'series';
+                            if (currentPath === "series/arabe") originalCategory = "arabicSeries";
+                            else if (currentPath === "series/foreign") originalCategory = "foreignSeries";
+                        } else if (currentPath === "channels") {
+                            itemType = 'channel';
+                            originalCategory = "channels";
+                        }
+
+                        contentArray.push({ ...item, type: itemType, id: key, originalCategory: originalCategory });
+                    }
+                });
+            }
+        });
+
+        displayContent(contentArray);
+        // If it's a forced refresh, also clear and reload allLoadedContent for search.
+        if (forceRefresh) {
+            allLoadedContent = null; // Invalidate cache
+            await loadAllContentForSearch(); // Re-load
+        }
+      } catch (error) {
+        console.error("Error loading content:", error);
+        container.innerHTML = "<p style='text-align:center; color:red;'>⚠️ حدث خطأ أثناء التحميل.</p>";
+      }
+    }
+    
+    /**
+     * Filters the currently displayed content based on the search input.
+     * This function now searches across ALL categories.
+     */
+    async function filterContent() {
+      const searchInput = document.getElementById("search").value.toLowerCase();
+      const container = document.getElementById("contentContainer");
+      
+      // If search input is too short, revert to current content type display
+      if (searchInput.length < 2 && searchInput.length > 0) { // Only show message if user started typing
+          container.innerHTML = "<p style='text-align:center;'>اكتب حرفين على الأقل للبحث.</p>";
+          return;
+      }else if (searchInput.length === 0) { // If search input is cleared, reload current content type
+          loadContent(currentContentType, document.querySelector(`.top-buttons-row button[onclick*="${currentContentType}"]`));
+          return;
+      }
+      
+      container.innerHTML = "<div class='loading-spinner'></div><p style='text-align:center;'>⏳ جاري البحث...</p>";
+
+      // Ensure all content is loaded for comprehensive search
+      if (!allLoadedContent) {
+        await loadAllContentForSearch(); // Ensure this is awaited
+      }
+
+      if (!allLoadedContent) { // Check again in case loadAllContentForSearch failed
+          container.innerHTML = "<p style='text-align:center; color:red;'>⚠️ حدث خطأ في تجهيز البيانات للبحث.</p>";
+          return;
+      }
+      
+      const filteredContent = allLoadedContent.filter(item => 
+        item.title && item.title.toLowerCase().includes(searchInput)
+      );
+
+      displayContent(filteredContent);
+    }
+
+    /**
+     * Renders a list of content items to the main container.
+     * @param {Array} contentArray - The array of content items to display.
+     */
+    function displayContent(contentArray) {
+      const container = document.getElementById("contentContainer");
+      container.innerHTML = "";
+
+      if (contentArray.length === 0) {
+        container.innerHTML = "<p style='text-align:center;'>🙁 لا توجد نتائج عرضها.</p>";
+        return;
+      }
+
+      contentArray.forEach(item => {
+        let isMovie = item.type === 'movie';
+        let isSeries = item.type === 'series';
+        let isChannel = item.type === 'channel';
+
+        // Determine unique ID for bookmarking
+        const bookmarkId = (item.type === 'episode' && item.seriesId && item.episodeKey) 
+                           ? `${item.seriesId}-${item.episodeKey}` 
+                           : item.id;
+        
+        const watchProgress = getVideoWatchProgress(bookmarkId);
+        // The watch percentage for a complete view is 90% or more.
+        const isWatched = watchProgress.percentage >= 90;
+
+        let movieCardHtml = '';
+        if (isMovie || isChannel) {
+          const isFav = isFavorite(item.id, item.originalCategory);
+          movieCardHtml = `
+            <div class="movie ${isWatched ? 'watched' : ''}">
+              <div class="movie-image-container" onclick="openInPlayer('${item.video}', '${item.title.replace(/'/g, "\\'")}', '${item.id}', '${item.type}', null, -1)">
+                <img src="${item.image}" alt="${item.title}">
+                ${isWatched ? '<div class="movie-watched-overlay">تمت المشاهدة ✔</div>' : ''}
+              </div>
+              <p>${item.title}</p>
+              ${!isChannel ? `
+                  <div class="progress-bar-container" style="${!isWatched && watchProgress.percentage > 0 ? '' : 'display:none;'}">
+                      <div class="progress-bar" style="width:${watchProgress.percentage}%;"></div>
+                  </div>
+                  <button class="fav-button" onclick="toggleFavorite(event, '${item.id}', '${item.type}', '${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.video}', '${item.originalCategory}')" style="background:${isFav ? '#e91e63' : '#444'};">
+                      ${isFav ? '❤️ مفضلة' : '🤍 أضف للمفضلة'}
+                  </button>
+              ` : ''}
+            </div>`;
+        } else if (isSeries) {
+          const isFav = isSeriesFavorite(item.id, item.originalCategory);
+          movieCardHtml = `
+            <div class="movie">
+              <img src="${item.image}" alt="${item.title}" onclick="showEpisodes('${item.id}')">
+              <p>${item.title}</p>
+              <button class="fav-button" onclick="toggleSeriesFavorite(event, '${item.id}', '${item.type}', '${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.originalCategory}')" style="background:${isFav ? '#e91e63' : '#444'};">
+                ${isFav ? '❤️ مفضلة' : '🤍 أضف للمفضلة'}
+              </button>
+            </div>`;
+        }
+        container.innerHTML += movieCardHtml;
+      });
+    }
+
+    /**
+     * Displays a popup with episodes for a given series ID.
+     * @param {string} seriesId - The ID of the series.
+     */
+    async function showEpisodes(seriesId) {
+      const container = document.getElementById("episodesContainer");
+      container.innerHTML = "<div class='loading-spinner'></div><p style='text-align:center;'>⏳ جاري تحميل الحلقات...</p>";
+      
+      await loadAllContentForSearch();
+
+      const series = allLoadedContent.find(item => item.id === seriesId);
+      
+      if (!series || !series.episodes) {
+        container.innerHTML = "<p style='text-align:center;'>🙁 لا توجد حلقات لهذا المسلسل.</p>";
+        return;
+      }
+
+      currentSeriesData = {
+          id: seriesId,
+          title: series.title,
+          episodes: Object.keys(series.episodes)
+                      .map(key => ({ episodeKey: key, ...series.episodes[key] }))
+                      .sort((a, b) => { // Ensure episodes are always sorted
+                          const numA = parseInt(a.episodeKey);
+                          const numB = parseInt(b.episodeKey);
+                          if (!isNaN(numA) && !isNaN(numB)) {
+                              return numA - numB;
+                          }
+                          return a.episodeKey.localeCompare(b.episodeKey);
+                      })
+      };
+      currentEpisodeIndex = -1; // Reset when opening series episode list
+
+      container.innerHTML = "";
+      currentSeriesData.episodes.forEach((ep, index) => {
+        const bookmarkId = `${currentSeriesData.id}-${ep.episodeKey}`;
+        const watchProgress = getVideoWatchProgress(bookmarkId);
+        // The watch percentage for a complete view is 90% or more.
+        const isWatched = watchProgress.percentage >= 90;
+
+        container.innerHTML += `
+          <div class="episode ${isWatched ? 'watched' : ''}" onclick="openInPlayer('${ep.video}', '${currentSeriesData.title.replace(/'/g, "\\'") + ' - ' + ep.title.replace(/'/g, "\\'")}', '${currentSeriesData.id}', 'episode', '${ep.episodeKey}', ${index})">
+            <img src="${ep.image}" alt="${ep.title}">
+            ${isWatched ? '<div class="movie-watched-overlay">تمت المشاهدة ✔</div>' : ''}
+            <p>${ep.title}</p>
+            <div class="progress-bar-container" style="${!isWatched && watchProgress.percentage > 0 ? '' : 'display:none;'}">
+                <div class="progress-bar" style="width:${watchProgress.percentage}%;"></div>
+            </div>
+          </div>`;
+      });
+      document.getElementById("seriesPopup").style.display = "flex";
+    }
+
+    /**
+     * Closes the series episodes popup.
+     */
+    function closeSeriesPopup() {
+      document.getElementById("seriesPopup").style.display = "none";
+      currentSeriesData = null; // Clear series data when closing
+      currentEpisodeIndex = -1;
+    }
+
+    /**
+     * Toggles the favorite status of a movie.
+     * @param {Event} event - The click event.
+     * @param {string} itemId - The ID of the movie item.
+     * @param {string} itemType - The type of the item (e.g., 'movie', 'cartoonMovie').
+     * @param {string} itemTitle - The title of the item.
+     * @param {string} itemImage - The image URL of the item.
+     * @param {string} itemVideo - The video URL of the item.
+     * @param {string} originalCategory - The original content category (e.g., 'arabicMovies', 'foreignMovies').
+     */
+    function toggleFavorite(event, itemId, itemType, itemTitle, itemImage, itemVideo, originalCategory) {
+      event.stopPropagation();
+      let favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+      
+      // Create a unique identifier for the favorite item
+      const uniqueFavId = itemId + '-' + originalCategory;
+
+      const item = { 
+          id: itemId, 
+          type: itemType, 
+          title: itemTitle, 
+          image: itemImage, 
+          video: itemVideo,
+          originalCategory: originalCategory,
+          uniqueFavId: uniqueFavId // Store the unique ID
+      };
+
+      if (favs.some(fav => fav.uniqueFavId === uniqueFavId)) { // Check using uniqueFavId
+        favs = favs.filter(fav => fav.uniqueFavId !== uniqueFavId); // Filter using uniqueFavId
+        event.target.innerText = "🤍 أضف للمفضلة";
+        event.target.style.background = "#444";
+        showToast("❌ تمت إزالة الفيلم من المفضلة");
+      } else {
+        favs.push(item);
+        event.target.innerText = "❤️ مفضلة";
+        event.target.style.background = "#e91e63";
+        showToast("✅ تمت إضافة الفيلم إلى المفضلة");
+      }
+      localStorage.setItem("favorites", JSON.stringify(favs));
+      // Re-render favorites if the popup is open to reflect changes
+      if (document.getElementById("favoritesPopup").style.display === "flex") {
+        showFavorites();
+      }
+    }
+
+    /**
+     * Toggles the favorite status of a series.
+     * @param {Event} event - The click event.
+     * @param {string} seriesId - The ID of the series.
+     * @param {string} seriesType - The type of the series (e.g., 'arabicSeries', 'foreignSeries').
+     * @param {string} seriesTitle - The title of the series.
+     * @param {string} seriesImage - The image URL of the series.
+     * @param {string} originalCategory - The original content category (e.g., 'arabicSeries', 'foreignSeries').
+     */
+    async function toggleSeriesFavorite(event, seriesId, seriesType, seriesTitle, seriesImage, originalCategory) {
+      event.stopPropagation();
+      let favs = JSON.parse(localStorage.getItem("favoriteSeries") || "[]");
+      
+      const uniqueFavId = seriesId + '-' + originalCategory; // Create unique ID for series
+
+      if (!allLoadedContent) {
+          await loadAllContentForSearch();
+      }
+
+      const series = allLoadedContent.find(i => i.id === seriesId);
+
+      if (!series) {
+        console.error("Series not found for ID:", seriesId);
+        return;
+      }
+
+      if (favs.some(fav => fav.uniqueFavId === uniqueFavId)) { // Check using uniqueFavId
+        favs = favs.filter(fav => fav.uniqueFavId !== uniqueFavId); // Filter using uniqueFavId
+        event.target.innerText = "🤍 أضف للمفضلة";
+        event.target.style.background = "#444";
+        showToast("❌ تم إزالة المسلسل من المفضلة");
+      } else {
+        favs.push({ 
+            id: seriesId, 
+            type: seriesType, 
+            title: seriesTitle, 
+            image: seriesImage, 
+            episodes: series.episodes,
+            originalCategory: originalCategory,
+            uniqueFavId: uniqueFavId // Store the unique ID
+        });
+        event.target.innerText = "❤️ مفضلة";
+        event.target.style.background = "#e91e63";
+        showToast("✅ تم إضافة المسلسل إلى المفضلة");
+      }
+      localStorage.setItem("favoriteSeries", JSON.stringify(favs));
+      // Re-render favorites if the popup is open to reflect changes
+      if (document.getElementById("favoritesPopup").style.display === "flex") {
+        showFavorites();
+      }
+    }
+
+    /**
+     * Checks if a movie is in favorites.
+     * @param {string} itemId - The ID of the movie item.
+     * @param {string} originalCategory - The original content category.
+     * @returns {boolean} - True if favorite, false otherwise.
+     */
+    function isFavorite(itemId, originalCategory) {
+      let favs = JSON.parse(localStorage.getItem("favorites") || "[]");
+      const uniqueFavId = itemId + '-' + originalCategory;
+      return favs.some(fav => fav.uniqueFavId === uniqueFavId);
+    }
+
+    /**
+     * Checks if a series is in favorites.
+     * @param {string} seriesId - The ID of the series.
+     * @param {string} originalCategory - The original content category.
+     * @returns {boolean} - True if favorite, false otherwise.
+     */
+    function isSeriesFavorite(seriesId, originalCategory) {
+      let favs = JSON.parse(localStorage.getItem("favoriteSeries") || "[]");
+      const uniqueFavId = seriesId + '-' + originalCategory;
+      return favs.some(fav => fav.uniqueFavId === uniqueFavId);
+    }
+
+    /**
+     * Displays the favorites popup with favorited movies and series, categorized.
+     */
+    async function showFavorites(btn) {
+      if (btn) setActiveButton(btn); // Only activate if called from a nav button
+      const container = document.getElementById("favoritesContainer");
+      const popup = document.getElementById("favoritesPopup");
+      const favMovies = JSON.parse(localStorage.getItem("favorites") || "[]");
+      const favSeries = JSON.parse(localStorage.getItem("favoriteSeries") || "[]");
+      container.innerHTML = "<div class='loading-spinner'></div><p style='text-align:center;'>⏳ جاري تحميل المفضلة...</p>";
+
+      // Ensure all content is loaded to get originalCategory if not present
+      await loadAllContentForSearch(); 
+
+      try {
+        container.innerHTML = "";
+        let hasFavorites = false;
+
+        // Group movies by original category
+        const arabicMoviesFavs = favMovies.filter(movie => movie.originalCategory === 'arabicMovies');
+        const foreignMoviesFavs = favMovies.filter(movie => movie.originalCategory === 'foreignMovies');
+        const cartoonMoviesFavs = favMovies.filter(movie => movie.originalCategory === 'cartoonMovies');
+
+        // Group series by original category
+        const arabicSeriesFavs = favSeries.filter(series => series.originalCategory === 'arabicSeries');
+        const foreignSeriesFavs = favSeries.filter(series => series.originalCategory === 'foreignSeries');
+
+        // Helper function to render a section
+        const renderSection = (items, title, isSeriesSection = false) => {
+            if (items.length > 0) {
+                hasFavorites = true;
+                const sectionDiv = document.createElement('div');
+                sectionDiv.classList.add('favorites-section');
+                sectionDiv.innerHTML = `<h3>${title}</h3>`;
+                items.forEach(item => {
+                    let clickHandler;
+                    let bookmarkId;
+                    if (isSeriesSection) {
+                        bookmarkId = item.id; // For series, bookmark ID is just the series ID
+                        // For favorite series, show episodes first
+                        clickHandler = `showEpisodes('${item.id}')`;
+                    } else {
+                        bookmarkId = item.id; // For movies, bookmark ID is just movie ID
+                        // For favorite movies/channels, open in player directly
+                        // Need to pass full item details for accurate bookmarking and context
+                        clickHandler = `openInPlayer('${item.video}', '${item.title.replace(/'/g, "\\'")}', '${item.id}', '${item.type}', null, -1)`;
+                    }
+
+                    const watchProgress = getVideoWatchProgress(bookmarkId);
+                    // The watch percentage for a complete view is 90% or more.
+                    const isWatched = watchProgress.percentage >= 90;
+
+                    const itemHtml = `
+                        <div class="movie ${isWatched ? 'watched' : ''}">
+                            <div class="movie-image-container" onclick="${clickHandler}">
+                              <img src="${item.image}" alt="${item.title}">
+                              ${isWatched ? '<div class="movie-watched-overlay">تمت المشاهدة ✔</div>' : ''}
+                            </div>
+                            <p>${item.title}</p>
+                            ${!isSeriesSection ? `
+                                <div class="progress-bar-container" style="${!isWatched && watchProgress.percentage > 0 ? '' : 'display:none;'}">
+                                    <div class="progress-bar" style="width:${watchProgress.percentage}%;"></div>
+                                </div>
+                                <button class="fav-button" onclick="toggleFavorite(event, '${item.id}', '${item.type}', '${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.video}', '${item.originalCategory}')" style="background:#e91e63;">❤️ مفضلة</button>
+                            ` : `
+                                <button class="fav-button" onclick="toggleSeriesFavorite(event, '${item.id}', '${item.type}', '${item.title.replace(/'/g, "\\'")}', '${item.image}', '${item.originalCategory}')" style="background:#e91e63;">❤️ مفضلة</button>
+                            `}
+                        </div>`;
+                    sectionDiv.innerHTML += itemHtml;
+                });
+                container.appendChild(sectionDiv);
+            }
+        };
+
+        renderSection(arabicMoviesFavs, "🎥 الأفلام العربية المفضلة");
+        renderSection(foreignMoviesFavs, "🌍 الأفلام الأجنبية المفضلة");
+        renderSection(cartoonMoviesFavs, "🎬 أفلام الكرتون المفضلة");
+        renderSection(arabicSeriesFavs, "📺 المسلسلات العربية المفضلة", true);
+        renderSection(foreignSeriesFavs, "🌍 المسلسلات الأجنبية المفضلة", true);
+
+
+        if (!hasFavorites) {
+            container.innerHTML = "<p style='text-align:center; color:#ccc;'>🙁 لا توجد عناصر مفضلة.</p>";
+        }
+
+        popup.style.display = "flex";
+      } catch (error) {
+        console.error("Error loading favorites:", error);
+        container.innerHTML = "<p style='text-align:center; color:red;'>⚠️ حدث خطأ أثناء تحميل المفضلة.</p>";
+      }
+    }
+
+    /**
+     * Closes the favorites popup.
+     */
+    function closeFavorites() {
+      document.getElementById("favoritesPopup").style.display = "none";
+    }
+
+    /**
+     * Clears all favorited movies and series from local storage.
+     * This function now *only* clears favorites, not watch progress.
+     */
+    function clearFavorites() {
+      localStorage.removeItem("favorites");
+      localStorage.removeItem("favoriteSeries");
+      showToast("🗑️ تم حذف جميع المفضلة");
+      showFavorites(); // Re-render favorites popup after clearing
+      // No need to refresh main content as favorites don't affect main content display directly,
+      // only the heart icon state, which will be updated on next loadContent call anyway.
+    }
+
+    /**
+     * Clears all watch progress data (bookmarks) from local storage.
+     */
+    function clearWatchProgress() {
+        if (confirm("هل أنت متأكد أنك تريد مسح جميع سجلات المشاهدة (علامات 'تمت المشاهدة' وأشرطة التقدم)؟ لا يمكن التراجع عن هذا الإجراء.")) {
+            localStorage.removeItem("videoBookmarks");
+            showToast("🗑️ تم مسح جميع سجلات المشاهدة.");
+            // Refresh current content view to remove checkmarks and progress bars
+            loadContent(currentContentType, document.querySelector(`.top-buttons-row button[onclick*="${currentContentType}"]`), true);
+        }
+    }
+
+
+    /**
+     * Loads all content from Firebase once for the search function to use.
+     */
+    async function loadAllContentForSearch() {
+      if (allLoadedContent) return; // Only load once
+
+      try {
+          const allDataPromises = [
+            db.ref("movies/movies").once("value"),
+            db.ref("movies/moviesEN").once("value"),
+            db.ref("movies/cartoon").once("value"),
+            db.ref("series/arabe").once("value"),
+            db.ref("series/foreign").once("value"),
+            db.ref("channels").once("value")
+          ];
+
+          const snapshots = await Promise.all(allDataPromises);
+          allLoadedContent = [];
+          snapshots.forEach((snapshot, index) => {
+            const data = snapshot.val();
+            if (data) {
+              Object.keys(data).forEach(key => {
+                const item = data[key];
+                if (item && item.title && item.image) {
+                  let itemType;
+                  let originalCategory = '';
+                  // Determine itemType and originalCategory based on the index of the promise
+                  if (index === 0) { itemType = 'movie'; originalCategory = "arabicMovies"; }
+                  else if (index === 1) { itemType = 'movie'; originalCategory = "foreignMovies"; }
+                  else if (index === 2) { itemType = 'movie'; originalCategory = "cartoonMovies"; }
+                  else if (index === 3) { itemType = 'series'; originalCategory = "arabicSeries"; }
+                  else if (index === 4) { itemType = 'series'; originalCategory = "foreignSeries"; }
+                  else if (index === 5) { itemType = 'channel'; originalCategory = "channels"; }
+                  
+                  allLoadedContent.push({ ...item, type: itemType, id: key, originalCategory: originalCategory });
+                }
+              });
+            }
+          });
+      } catch (error) {
+        console.error("Error pre-loading content for search:", error);
+        allLoadedContent = []; // Ensure it's an empty array on error to prevent infinite retries
+      }
+    }
+
+    /**
+     * Formats seconds into HH:MM:SS or MM:SS.
+     * @param {number} seconds - The total seconds.
+     * @returns {string} Formatted time string.
+     */
+    function formatTime(seconds) {
+      if (isNaN(seconds) || seconds < 0) return "00:00";
+      const h = Math.floor(seconds / 3600);
+      const m = Math.floor((seconds % 3600) / 60);
+      const s = Math.floor(seconds % 60);
+      const formatted = [m, s].map(v => v < 10 ? '0' + v : v).join(':');
+      return h > 0 ? (h < 10 ? '0' + h : h) + ':' + formatted : formatted;
+    }
+
+    let lastBookmarkSaveTime = 0; // To throttle bookmark saving
+
+    /**
+     * Updates the current time and total duration display of the video player.
+     */
+    function updateTimeDisplay() {
+        const video = document.getElementById('videoPlayer');
+        const timeDisplay = document.getElementById('timeDisplay');
+        timeDisplay.innerText = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+        // Throttle bookmark saving
+        if (!video.paused && video.duration > 0 && Date.now() - (lastBookmarkSaveTime || 0) > 5000) { // Save every 5 seconds
+            saveBookmark(video.dataset.currentContentId, video.currentTime, video.duration);
+            lastBookmarkSaveTime = Date.now();
+        }
+    }
+
+    /**
+     * Toggles full-screen mode for the video player.
+     */
+    function toggleFullScreen() {
+        const video = document.getElementById('videoPlayer'); // Target the video element itself
+        if (document.fullscreenElement) {
+            document.exitFullscreen()
+                .then(() => showToast("خرجت من وضع ملء الشاشة"))
+                .catch(err => console.error("Error exiting fullscreen:", err));
+        } else {
+            if (video.requestFullscreen) {
+                video.requestFullscreen() // Request fullscreen on the video element
+                    .then(() => showToast("دخلت في وضع ملء الشاشة"))
+                    .catch(err => console.error("Error entering fullscreen:", err));
+            } else if (video.webkitRequestFullscreen) { /* Safari */
+                video.webkitRequestFullscreen()
+                    .then(() => showToast("دخلت في وضع ملء الشاشة"))
+                    .catch(err => console.error("Error entering fullscreen:", err));
+            } else if (video.msRequestFullscreen) { /* IE11 */
+                video.msRequestFullscreen()
+                    .then(() => showToast("دخلت في وضع ملء الشاشة"));
+            } else {
+                showToast("متصفحك لا يدعم وضع ملء الشاشة");
+            }
+        }
+    }
+
+    
+    /**
+     * Saves the current playback position and duration for a given content ID.
+     * @param {string} contentId - The unique ID of the content (movie ID or seriesId-episodeKey).
+     * @param {number} time - The current playback time in seconds.
+     * @param {number} duration - The total duration of the video in seconds.
+     */
+    function saveBookmark(contentId, time, duration) {
+        if (!contentId || isNaN(time) || time < 0 || isNaN(duration) || duration <= 0) return;
+        let bookmarks = JSON.parse(localStorage.getItem("videoBookmarks") || "{}");
+        bookmarks[contentId] = { currentTime: time, duration: duration };
+        localStorage.setItem("videoBookmarks", JSON.stringify(bookmarks));
+        // console.log(`Bookmark saved for ${contentId} at ${time}s / ${duration}s`);
+    }
+
+    /**
+     * Loads the saved playback position for a given content ID.
+     * @param {string} contentId - The unique ID of the content.
+     * @returns {object} An object containing currentTime, duration, and percentage.
+     */
+    function getVideoWatchProgress(contentId) {
+        if (!contentId) return { currentTime: 0, duration: 0, percentage: 0 };
+        let bookmarks = JSON.parse(localStorage.getItem("videoBookmarks") || "{}");
+        const bookmark = bookmarks[contentId] || { currentTime: 0, duration: 0 };
+        const percentage = bookmark.duration > 0 ? (bookmark.currentTime / bookmark.duration) * 100 : 0;
+        return {
+            currentTime: bookmark.currentTime,
+            duration: bookmark.duration,
+            percentage: parseFloat(percentage.toFixed(2)) // Round to 2 decimal places
+        };
+    }
+
+    // /**
+    //  * Removed: This function is no longer needed as bookmarks are kept if >= 90%.
+    //  * If you need to explicitly remove a single bookmark, use `delete bookmarks[contentId]` directly.
+    //  */
+    // function removeBookmark(contentId) {
+    //     if (!contentId) return;
+    //     let bookmarks = JSON.parse(localStorage.getItem("videoBookmarks") || "{}");
+    //     delete bookmarks[contentId];
+    //     localStorage.setItem("videoBookmarks", JSON.stringify(bookmarks));
+    //     // console.log(`Bookmark removed for ${contentId}`);
+    // }
+
+    /**
+     * Updates the visibility and state of next/previous episode buttons.
+     */
+    function updateEpisodeNavigationButtons() {
+        const prevBtn = document.getElementById('prevEpisodeBtn');
+        const nextBtn = document.getElementById('nextEpisodeBtn');
+
+        if (currentSeriesData && currentEpisodeIndex !== -1) {
+            prevBtn.style.display = (currentEpisodeIndex > 0) ? 'inline-flex' : 'none';
+            nextBtn.style.display = (currentEpisodeIndex < currentSeriesData.episodes.length - 1) ? 'inline-flex' : 'none';
+        } else {
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+        }
+    }
+
+    /**
+     * Plays the next episode in the current series.
+     */
+    function playNextEpisode() {
+        if (currentSeriesData && currentEpisodeIndex < currentSeriesData.episodes.length - 1) {
+            const nextIndex = currentEpisodeIndex + 1;
+            const nextEpisode = currentSeriesData.episodes[nextIndex];
+            openInPlayer(nextEpisode.video, `${currentSeriesData.title} - ${nextEpisode.title}`, currentSeriesData.id, 'episode', nextEpisode.episodeKey, nextIndex);
+        } else {
+            showToast("لا توجد حلقات تالية.");
+        }
+    }
+
+    /**
+     * Plays the previous episode in the current series.
+     */
+    function playPreviousEpisode() {
+        if (currentSeriesData && currentEpisodeIndex > 0) {
+            const prevIndex = currentEpisodeIndex - 1;
+            const prevEpisode = currentSeriesData.episodes[prevIndex];
+            openInPlayer(prevEpisode.video, `${currentSeriesData.title} - ${prevEpisode.title}`, currentSeriesData.id, 'episode', prevEpisode.episodeKey, prevIndex);
+        } else {
+            showToast("لا توجد حلقات سابقة.");
+        }
+    }
+
+
+    /**
+     * Opens the video player popup and plays the specified URL.
+     * Supports HLS (.m3u8) and direct video links.
+     * @param {string} url - The URL of the video to play.
+     * @param {string} title - The title of the content being played.
+     * @param {string} contentId - The unique ID of the content (movie ID or series ID).
+     * @param {string} contentType - The type of content ('movie', 'channel', 'episode').
+     * @param {string} [episodeKey] - Optional: The key of the episode if content is an episode.
+     * @param {number} [episodeIndex] - Optional: The sorted index of the episode in its series.
+     */
+    async function openInPlayer(url, title = "تشغيل الفيديو", contentId, contentType, episodeKey = null, episodeIndex = -1) {
+      const popup = document.getElementById("videoPopup");
+      const video = document.getElementById("videoPlayer");
+      const downloadBtn = document.getElementById("downloadBtn");
+      const videoTitleElement = document.getElementById("videoTitle"); 
+      const qualitySelector = document.getElementById("qualitySelector");
+      
+      videoTitleElement.innerText = title; 
+      downloadBtn.style.display = "none"; // Hide by default
+
+      // Determine the unique ID for bookmarking
+      const bookmarkId = (contentType === 'episode' && contentId && episodeKey) ? `${contentId}-${episodeKey}` : contentId;
+      video.dataset.currentContentId = bookmarkId; // Store for bookmarking
+
+      // Set series context for navigation
+      if (contentType === 'episode' && currentSeriesData && currentSeriesData.id === contentId) {
+          currentEpisodeIndex = episodeIndex;
+      } else {
+          currentSeriesData = null;
+          currentEpisodeIndex = -1;
+      }
+      updateEpisodeNavigationButtons();
+
+      // Destroy previous HLS instance if it exists
+      if (currentHls) {
+        currentHls.destroy();
+        currentHls = null;
+      }
+      qualitySelector.style.display = 'none'; // Hide quality selector by default
+      qualitySelector.innerHTML = ''; // Clear previous options
+
+      if (Hls.isSupported() && url.endsWith(".m3u8")) {
+        const hls = new Hls();
+        hls.loadSource(url);
+        hls.attachMedia(video);
+        currentHls = hls; // Store current HLS instance
+
+        hls.on(Hls.Events.MANIFEST_PARSED, function(event, data) {
+            const levels = data.levels;
+            if (levels && levels.length > 1) {
+                qualitySelector.style.display = 'block';
+                // Add "Auto" option
+                let autoOption = document.createElement('option');
+                autoOption.value = -1; // -1 for auto
+                autoOption.innerText = 'جودة تلقائية';
+                qualitySelector.appendChild(autoOption);
+
+                levels.forEach((level, index) => {
+                    let option = document.createElement('option');
+                    option.value = index;
+                    option.innerText = `${level.height}p (${Math.round(level.bitrate / 1000)}kbps)`;
+                    if (hls.currentLevel === index) { // Select current active quality
+                        option.selected = true;
+                    }
+                    qualitySelector.appendChild(option);
+                });
+                qualitySelector.value = hls.currentLevel; // Set initial selection
+            } else {
+                qualitySelector.style.display = 'none';
+            }
+
+            // Load bookmark after manifest is parsed and video is ready
+            const savedProgress = getVideoWatchProgress(bookmarkId);
+            if (savedProgress.currentTime > 0 && savedProgress.currentTime < video.duration) { // Ensure saved time is valid
+                video.currentTime = savedProgress.currentTime;
+                showToast(`تم استئناف التشغيل من ${formatTime(savedProgress.currentTime)}`);
+            }
+        });
+
+        hls.on(Hls.Events.LEVEL_SWITCHED, function(event, data) {
+            qualitySelector.value = data.level; // Update selector when level changes automatically
+        });
+
+        qualitySelector.onchange = function() {
+            hls.currentLevel = parseInt(this.value); // Change HLS quality
+        };
+
+        try {
+            await video.play();
+        } catch (error) {
+            if (error.name === "AbortError") {
+                console.log("Video playback aborted (expected behavior for HLS).");
+            } else {
+                console.error("Error attempting to play HLS video:", error);
+                showToast("⚠️ فشل تشغيل الفيديو. حاول مجدداً.");
+            }
+        }
+      } else {
+        // Direct video or non-HLS streams
+        video.src = url;
+        video.load();
+        
+        // Load bookmark immediately for direct videos
+        video.addEventListener('loadedmetadata', function onLoadedMetadata() {
+            video.removeEventListener('loadedmetadata', onLoadedMetadata); // Remove self
+            const savedProgress = getVideoWatchProgress(bookmarkId);
+            if (savedProgress.currentTime > 0 && savedProgress.currentTime < video.duration) {
+                video.currentTime = savedProgress.currentTime;
+                showToast(`تم استئناف التشغيل من ${formatTime(savedProgress.currentTime)}`);
+            }
+            // Ensure play is attempted after metadata and bookmark are handled
+            try {
+                video.play();
+            }catch (error) {
+                if (error.name === "AbortError") {
+                    console.log("Video playback aborted (expected behavior for direct video).");
+                } else {
+                    console.error("Error attempting to play direct video:", error);
+                    showToast("⚠️ فشل تشغيل الفيديو. حاول مجدداً.");
+                }
+            }
+        });
+        
+        downloadBtn.href = url;
+        downloadBtn.target = "_blank";
+        downloadBtn.style.display = "inline-flex"; // Use inline-flex for button styling
+      }
+      
+      // Attach time update listener
+      video.addEventListener('timeupdate', updateTimeDisplay);
+      video.addEventListener('loadedmetadata', updateTimeDisplay); // Update duration once metadata is loaded
+      
+      // Mark as watched and refresh display when video ends
+      video.addEventListener('ended', () => {
+          if (video.dataset.currentContentId) {
+              // Mark as 100% watched. This bookmark will then trigger isWatched >= 90.
+              saveBookmark(video.dataset.currentContentId, video.duration, video.duration); 
+              showToast("🎉 تم الانتهاء من المشاهدة!");
+              // Refresh content display to show checkmark/progress bar update
+              if (document.getElementById("favoritesPopup").style.display === "flex") {
+                showFavorites();
+              } else {
+                loadContent(currentContentType, document.querySelector(`.top-buttons-row button[onclick*="${currentContentType}"]`), true);
+              }
+          }
+      });
+
+      popup.style.display = "flex";
+    }
+
+    /**
+     * Closes the video player popup, pauses the video, and clears its source.
+     */
+    function closeVideo() {
+      const popup = document.getElementById("videoPopup");
+      const video = document.getElementById("videoPlayer");
+      
+      // Remove time update listener
+      video.removeEventListener('timeupdate', updateTimeDisplay);
+      video.removeEventListener('loadedmetadata', updateTimeDisplay);
+      
+      // Save bookmark on close, in case user didn't pause or video didn't end (e.g., closed mid-way)
+      // Only save if it's not already marked as fully watched (>= 90%)
+      const watchProgressOnClose = getVideoWatchProgress(video.dataset.currentContentId);
+      if (video.dataset.currentContentId && watchProgressOnClose.percentage < 90) { // Only save if not already "watched"
+          saveBookmark(video.dataset.currentContentId, video.currentTime, video.duration);
+      }
+
+      video.src = ""; // Clear video source
+      video.removeAttribute('data-current-content-id'); // Clear content ID
+
+      // Destroy HLS instance if it exists
+      if (currentHls) {
+        currentHls.destroy();
+        currentHls = null;
+      }
+      
+      // Exit fullscreen if active
+      if (document.fullscreenElement) {
+          document.exitFullscreen();
+      }
+      popup.style.display = "none";
+      // Clear series context
+      currentSeriesData = null;
+      currentEpisodeIndex = -1;
+      updateEpisodeNavigationButtons(); // Hide episode navigation buttons
+      
+      // Refresh the current content display to reflect new bookmark/watched status
+      if (document.getElementById("favoritesPopup").style.display === "flex") {
+        showFavorites();
+      } else {
+        loadContent(currentContentType, document.querySelector(`.top-buttons-row button[onclick*="${currentContentType}"]`), true);
+      }
+    }
+
+    // Add event listeners for next/previous episode buttons
+    document.getElementById('nextEpisodeBtn').addEventListener('click', playNextEpisode);
+    document.getElementById('prevEpisodeBtn').addEventListener('click', playPreviousEpisode);
+
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', (event) => {
+        const video = document.getElementById('videoPlayer');
+        if (document.getElementById('videoPopup').style.display === 'flex' && video) {
+            switch (event.key) {
+                case ' ': // Spacebar for play/pause
+                    event.preventDefault(); // Prevent page scrolling
+                    if (video.paused) {
+                        video.play();
+                        showToast("تشغيل");
+                    } else {
+                        video.pause();
+                        showToast("إيقاف مؤقت");
+                    }
+                    break;
+                case 'ArrowRight': // Right arrow to seek forward 5 seconds
+                    event.preventDefault();
+                    video.currentTime += 5;
+                    showToast("تقديم 5 ثواني");
+                    break;
+                case 'ArrowLeft': // Left arrow to seek backward 5 seconds
+                    event.preventDefault();
+                    video.currentTime -= 5;
+                    showToast("رجوع 5 ثواني");
+                    break;
+                case 'm': // 'm' for mute/unmute
+                case 'M':
+                    event.preventDefault();
+                    video.muted = !video.muted;
+                    showToast(video.muted ? "🔇 كتم الصوت" : "🔊 تفعيل الصوت");
+                    break;
+                case 'f': // 'f' for fullscreen
+                case 'F':
+                    event.preventDefault();
+                    toggleFullScreen();
+                    break;
+                case 'Escape': // Escape key to exit video popup
+                    if (!document.fullscreenElement) { // Only if not in browser's fullscreen
+                        closeVideo();
+                    }
+                    break;
+                case 'N': // 'N' for next episode
+                case 'n':
+                    if (document.getElementById('nextEpisodeBtn').style.display !== 'none') {
+                        playNextEpisode();
+                    }
+                    break;
+                case 'P': // 'P' for previous episode
+                case 'p':
+                    if (document.getElementById('prevEpisodeBtn').style.display !== 'none') {
+                        playPreviousEpisode();
+                    }
+                    break;
+            }
+        } else if (document.getElementById('favoritesPopup').style.display === 'flex' && event.key === 'Escape') {
+             closeFavorites();
+        } else if (document.getElementById('seriesPopup').style.display === 'flex' && event.key === 'Escape') {
+             closeSeriesPopup();
+        }
+    });
+
+
+    // Load initial content when the window loads
+    window.onload = () => {
+      // Load 'all' content by default
+      const defaultButton = document.querySelector(`.top-buttons-row button[onclick*="loadContent('all'\"]`);
+      loadContent("all", defaultButton);
+      // Pre-load all content in the background for a faster search experience
+      loadAllContentForSearch();
+    };
+  </script>
+</body>
+</html>
